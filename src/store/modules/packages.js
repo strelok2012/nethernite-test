@@ -73,7 +73,7 @@ export default {
       searchCache.set(searchKey, searchResult.objects)
     },
     async fetchPackage ({ commit, dispatch }, { name, version }) {
-      commit('SET_ERROR_TEXT', '')
+      dispatch('setError', null)
       const packageKey = `${name}@${version}`
 
       const cached = packageCache.get(packageKey)
