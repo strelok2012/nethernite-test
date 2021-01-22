@@ -13,7 +13,10 @@ const defaultState = {
   total: 0,
   isListLoading: false,
   isPackageLoading: false,
-  currentPackage: {}
+  currentPackage: {},
+  errorText: '',
+  showError: false,
+  packageDialog: false
 }
 
 export default {
@@ -34,6 +37,15 @@ export default {
     },
     SET_CURRENT_PACKAGE: (state, payload) => {
       state.currentPackage = payload
+    },
+    SET_ERROR_TEXT: (state, payload) => {
+      state.errorText = payload
+    },
+    SET_SHOW_ERROR: (state, payload) => {
+      state.showError = payload
+    },
+    SET_PACKAGE_DIALOG: (state, payload) => {
+      state.packageDialog = payload
     }
   },
   getters: {
@@ -60,7 +72,8 @@ export default {
       commit('SET_TOTAL', searchResult.total)
       searchCache.set(searchKey, searchResult.objects)
     },
-    async fetchPackage ({ commit }, { name, version }) {
+    async fetchPackage ({ commit, dispatch }, { name, version }) {
+      commit('SET_ERROR_TEXT', '')
       const packageKey = `${name}@${version}`
 
       const cached = packageCache.get(packageKey)
@@ -74,19 +87,33 @@ export default {
         version
       })
       commit('SET_PACKAGE_LOADING', true)
-      const promises = [jsDelivrApi.get(`/package/npm/${name}`), jsDelivrApi.get(`/package/npm/${name}@${version}`), jsDelivrApi.get(`/package/npm/${name}/stats`)]
-      const result = await Promise.all(promises)
-      const packageData = {
-        name,
-        version,
-        versionsData: result[0],
-        filesData: result[1],
-        statsData: result[2],
-        badge: `https://data.jsdelivr.com/v1/package/npm/${name}/badge`
+      try {
+        const promises = [jsDelivrApi.get(`/package/npm/${name}`), jsDelivrApi.get(`/package/npm/${name}@${version}`), jsDelivrApi.get(`/package/npm/${name}/stats`)]
+        const result = await Promise.all(promises)
+        const packageData = {
+          name,
+          version,
+          versionsData: result[0],
+          filesData: result[1],
+          statsData: result[2],
+          badge: `https://data.jsdelivr.com/v1/package/npm/${name}/badge`
+        }
+        commit('SET_CURRENT_PACKAGE', packageData)
+        commit('SET_PACKAGE_LOADING', false)
+        packageCache.set(packageKey, packageData)
+      } catch (e) {
+        dispatch('setError', 'Package fetch failed')
       }
-      commit('SET_CURRENT_PACKAGE', packageData)
-      commit('SET_PACKAGE_LOADING', false)
-      packageCache.set(packageKey, packageData)
+    },
+    setError ({ commit }, text) {
+      if (text && text.length) {
+        commit('SET_ERROR_TEXT', text)
+        commit('SET_SHOW_ERROR', true)
+        commit('SET_PACKAGE_DIALOG', false)
+      } else {
+        commit('SET_ERROR_TEXT', '')
+        commit('SET_SHOW_ERROR', false)
+      }
     }
   }
 }

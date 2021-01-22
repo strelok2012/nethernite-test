@@ -104,16 +104,24 @@
       </v-col>
     </v-footer>
     <v-dialog
-      v-model="showDialog"
+      v-model="packageDialog"
       scrollable
     >
       <PackageDialog :current-package="currentPackage" />
     </v-dialog>
+
+    <v-snackbar
+      v-model="showError"
+      color="error"
+      :timeout="$options.ERROR_TIMEOUT"
+    >
+      {{ errorText }}
+    </v-snackbar>
   </v-app>
 </template>
 
 <script>
-import { PACKAGES_PER_PAGE } from '@/constants'
+import { PACKAGES_PER_PAGE, ERROR_TIMEOUT } from '@/constants'
 import { formatDate } from '@/utils'
 
 import PackageDialog from '@/components/PackageDialog.vue'
@@ -180,7 +188,7 @@ export default {
     },
     handleRowClick ({ name, version }) {
       this.$store.dispatch('packages/fetchPackage', { name, version })
-      this.showDialog = true
+      this.packageDialog = true
     },
     formatDate
   },
@@ -199,6 +207,25 @@ export default {
     },
     isPackageLoading () {
       return this.$store.state.packages.isPackageLoading
+    },
+    errorText () {
+      return this.$store.state.packages.errorText
+    },
+    showError: {
+      get () {
+        return this.$store.state.packages.showError
+      },
+      set (val) {
+        this.$store.commit('packages/SET_SHOW_ERROR', val)
+      }
+    },
+    packageDialog: {
+      get () {
+        return this.$store.state.packages.packageDialog
+      },
+      set (val) {
+        this.$store.commit('packages/SET_PACKAGE_DIALOG', val)
+      }
     }
   },
   watch: {
@@ -206,7 +233,8 @@ export default {
       this.search()
     }
   },
-  PACKAGES_PER_PAGE
+  PACKAGES_PER_PAGE,
+  ERROR_TIMEOUT
 }
 </script>
 
