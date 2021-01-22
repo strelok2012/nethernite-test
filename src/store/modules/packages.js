@@ -6,6 +6,7 @@ const jsDelivrApi = createApi(JSDELIVR_API_URL)
 const npmApi = createApi(NPM_API_URL)
 
 const searchCache = new Map()
+const packageCache = new Map()
 
 const defaultState = {
   list: [],
@@ -43,7 +44,9 @@ export default {
         searchCache.clear()
       }
 
-      const cached = searchCache.get([text, page].join('.'))
+      const searchKey = `${text}@${page}`
+
+      const cached = searchCache.get(searchKey)
       if (cached) {
         commit('SET_LIST', cached)
         return
@@ -55,9 +58,17 @@ export default {
       commit('SET_IS_LIST_LOADING', false)
       commit('SET_LIST', searchResult.objects)
       commit('SET_TOTAL', searchResult.total)
-      searchCache.set([text, page].join('.'), searchResult.objects)
+      searchCache.set(searchKey, searchResult.objects)
     },
     async fetchPackage ({ commit }, { name, version }) {
+      const packageKey = `${name}@${version}`
+
+      const cached = packageCache.get(packageKey)
+      if (cached) {
+        commit('SET_CURRENT_PACKAGE', cached)
+        return
+      }
+
       commit('SET_CURRENT_PACKAGE', {
         name,
         version
@@ -65,14 +76,16 @@ export default {
       commit('SET_PACKAGE_LOADING', true)
       const promises = [jsDelivrApi.get(`/package/npm/${name}`), jsDelivrApi.get(`/package/npm/${name}@${version}`), jsDelivrApi.get(`/package/npm/${name}/stats`)]
       const result = await Promise.all(promises)
-      commit('SET_CURRENT_PACKAGE', {
+      const packageData = {
         name,
         version,
         versionsData: result[0],
         filesData: result[1],
         statsData: result[2]
-      })
+      }
+      commit('SET_CURRENT_PACKAGE', packageData)
       commit('SET_PACKAGE_LOADING', false)
+      packageCache.set(packageKey, packageData)
     }
   }
 }
