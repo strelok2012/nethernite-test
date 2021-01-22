@@ -5,7 +5,7 @@
     </v-card-title>
     <v-card-text>
       <v-row >
-        <v-col cols="6" v-if="currentPackage.filesData" class="files-list">
+        <v-col cols="3" v-if="currentPackage.filesData" class="files-list">
             <v-treeview
               v-model="tree"
               :items="items"
@@ -26,7 +26,7 @@
         </v-col>
         <v-col
           v-else
-            cols="6"
+            cols="3"
           >
             <v-skeleton-loader
               class="mb-6"
@@ -86,6 +86,18 @@
               :boilerplate="true"
               type="list-item@5"
             ></v-skeleton-loader>
+        </v-col>
+
+        <v-col cols="3" v-if="currentPackage.badge" class="stats-list">
+          Badge:<br />
+          <kbd><a class="cdn-link" target="_blank" :href="currentPackage.badge">{{ currentPackage.badge }}</a></kbd>
+          <br />
+          <img :src="currentPackage.badge" />
+          <br />
+          <template v-if="currentPackage.filesData.default">
+            CDN Link:<br />
+            <kbd><a class="cdn-link" target="_blank" :href="`https://cdn.jsdelivr.net/npm/${currentPackage.name}@${currentPackage.version}${currentPackage.filesData.default}`">{{ `https://cdn.jsdelivr.net/npm/${currentPackage.name}@${currentPackage.version}${currentPackage.filesData.default}` }}</a></kbd>
+          </template>
         </v-col>
       </v-row>
     </v-card-text>
@@ -147,5 +159,9 @@ export default {
 .stats-list {
   max-height: 600px;
   overflow-y: auto;
+}
+
+.cdn-link {
+  color: white;
 }
 </style>

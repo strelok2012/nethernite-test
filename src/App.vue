@@ -168,6 +168,9 @@ export default {
       window.history.replaceState({}, '', `${location.pathname}?${urlParams}`)
     },
     search (reset = false) {
+      if (!this.searchPattern.length) {
+        return
+      }
       this.setQueryParams()
       this.$store.dispatch('packages/search', { text: this.searchPattern, page: this.currentPage, reset })
     },

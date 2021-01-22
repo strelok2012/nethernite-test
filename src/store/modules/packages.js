@@ -81,7 +81,8 @@ export default {
         version,
         versionsData: result[0],
         filesData: result[1],
-        statsData: result[2]
+        statsData: result[2],
+        badge: `https://data.jsdelivr.com/v1/package/npm/${name}/badge`
       }
       commit('SET_CURRENT_PACKAGE', packageData)
       commit('SET_PACKAGE_LOADING', false)
